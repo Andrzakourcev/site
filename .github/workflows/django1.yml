@@ -23,10 +23,14 @@ jobs:
     - name: Create virtual environment
       run: |
         python -m venv venv
+    - name: Install dependencies in virtual environment
+      run: |
         source venv/bin/activate
+        pip install --upgrade pip
         pip install -r sitetest/requirements.txt
     - name: Verify Django installation
       run: |
+        source venv/bin/activate
         python -m django --version
     - name: Run Tests
       run: |
