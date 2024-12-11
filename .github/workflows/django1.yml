@@ -24,7 +24,7 @@ jobs:
       run: |
         python -m venv venv
         source venv/bin/activate
-        pip install -r requirements.txt
+        pip install -r sitetest/requirements.txt
     - name: Verify Django installation
       run: |
         python -m django --version
