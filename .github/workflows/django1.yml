@@ -1,4 +1,4 @@
-name: Django CI
+name: Django CI with Vault
 
 on:
   push:
@@ -16,23 +16,31 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Create virtual environment
+        
+    - name: Set up Vault
+      uses: hashicorp/vault-action@v3
+      with:
+        url: ${{ secrets.VAULT_ADDR }}
+        method: approle
+        role_id: ${{ secrets.VAULT_ROLE_ID }}
+        secret_id: ${{ secrets.VAULT_SECRET_ID }}
+
+    - name: Retrieve SECRET_KEY from Vault
+      id: secret_key
       run: |
-        python -m venv venv
-    - name: Install dependencies in virtual environment
+        export SECRET_KEY=$(vault kv get -field=SECRET_KEY secret/django)
+        echo "SECRET_KEY=$SECRET_KEY" >> $GITHUB_ENV  # Сохраняем в переменной окружения
+
+    - name: Install dependencies
       run: |
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install -r sitetest/requirements.txt
-    - name: Verify Django installation
-      run: |
-        source venv/bin/activate
-        python -m django --version
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
     - name: Run Tests
       run: |
-        source venv/bin/activate
         python sitetest/manage.py test
