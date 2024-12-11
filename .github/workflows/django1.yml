@@ -24,7 +24,7 @@ jobs:
     - name: test Vault
       run: |
     
-        # Убедитесь, что Vault доступен
+       
         curl -X GET http://127.0.0.1:8200/v1/sys/health
     - name: Set up Vault
       uses: hashicorp/vault-action@v3
