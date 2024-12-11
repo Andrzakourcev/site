@@ -27,4 +27,4 @@ jobs:
         pip freeze > requirements.txt
     - name: Run Tests
       run: |
-        python sutetest/manage.py test
+        python sitetest/manage.py test
