@@ -74,7 +74,7 @@ jobs:
 
       - name: Run Django tests
         run: |
-          source venv/bin/activate  # Активируем виртуальное окружение
+          
           python sitetest/manage.py test
 
   deploy:
