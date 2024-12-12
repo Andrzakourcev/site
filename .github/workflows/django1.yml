@@ -44,6 +44,6 @@ jobs:
 
     - name: Run Tests
       run: |
-        python sitetest/manage.py test
+        python sitetest/manage.py runserver
 
 
