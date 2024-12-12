@@ -45,27 +45,47 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      # Создаем виртуальное окружение и устанавливаем зависимости
-      - name: Set up virtual environment
+      # Шаг 1: Создание виртуального окружения в директории sitetest
+      - name: Set up virtual environment in sitetest
         run: |
-          python -m venv venv
-          source venv/bin/activate
+          cd sitetest  # Переходим в папку sitetest
+          python -m venv venv  # Создаем виртуальное окружение внутри sitetest
+          ls -l sitetest/venv  # Проверяем, что venv создан
+          
+      # Шаг 2: Установка зависимостей в виртуальное окружение
+      - name: Install Python dependencies
+        run: |
+          cd sitetest  # Переходим в папку sitetest
+          source venv/bin/activate  # Активируем виртуальное окружение
           python -m pip install --upgrade pip
-          pip install -r sitetest/requirements.txt
+          pip install -r requirements.txt  # Устанавливаем зависимости из requirements.txt
 
+  lint:
+    runs-on: ubuntu-latest
+    needs: install_dependencies
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
 
+      - name: Install flake8 for linting
+        run: |
+          cd sitetest  # Переходим в папку sitetest
+          source venv/bin/activate  # Активируем виртуальное окружение
+          python -m pip install flake8
+          flake8 sitetest/ --max-line-length=88
 
   run_tests:
     runs-on: ubuntu-latest
-    needs: [install_dependencies]  # Зависит от установленных зависимостей
+    needs: [install_dependencies, lint]  # Зависит от установленных зависимостей и линтинга
     steps:
       - name: Check out code
         uses: actions/checkout@v4
 
       - name: Run Django tests
         run: |
-          source venv/bin/activate
-          python sitetest/manage.py test
+          cd sitetest  # Переходим в папку sitetest
+          source venv/bin/activate  # Активируем виртуальное окружение
+          python manage.py test  # Запуск тестов Django
 
   deploy:
     runs-on: ubuntu-latest
@@ -81,4 +101,3 @@ jobs:
           # ssh user@server 'bash deploy.sh'
         env:
           SECRET_KEY: ${{ env.SECRET_KEY }}  # Передаем SECRET_KEY для деплоя
-
