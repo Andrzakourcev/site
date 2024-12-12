@@ -45,20 +45,10 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      # Шаг 1: Создание виртуального окружения в директории sitetest
-      - name: Set up virtual environment in sitetest
+      - name: Install Python dependencies globally
         run: |
-          cd sitetest  # Переходим в папку sitetest
-          python -m venv venv  # Создаем виртуальное окружение внутри sitetest
-          ls -l sitetest/venv  # Проверяем, что venv создан
-          
-      # Шаг 2: Установка зависимостей в виртуальное окружение
-      - name: Install Python dependencies
-        run: |
-          cd sitetest  # Переходим в папку sitetest
-          source venv/bin/activate  # Активируем виртуальное окружение
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt  # Устанавливаем зависимости из requirements.txt
+          python -m pip install --upgrade pip  # Обновляем pip
+          pip install -r sitetest/requirements.txt  # Устанавливаем зависимости из requirements.txt
 
   lint:
     runs-on: ubuntu-latest
@@ -69,8 +59,6 @@ jobs:
 
       - name: Install flake8 for linting
         run: |
-          cd sitetest  # Переходим в папку sitetest
-          source venv/bin/activate  # Активируем виртуальное окружение
           python -m pip install flake8
           flake8 sitetest/ --max-line-length=88
 
@@ -83,9 +71,7 @@ jobs:
 
       - name: Run Django tests
         run: |
-          cd sitetest  # Переходим в папку sitetest
-          source venv/bin/activate  # Активируем виртуальное окружение
-          python manage.py test  # Запуск тестов Django
+          python sitetest/manage.py test  # Запуск тестов Django
 
   deploy:
     runs-on: ubuntu-latest
