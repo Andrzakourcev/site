@@ -46,16 +46,22 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Set up virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+
       - name: Cache Python dependencies
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install Python dependencies
         run: |
+          source venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r sitetest/requirements.txt
 
@@ -69,8 +75,9 @@ jobs:
 
       - name: Run Django tests
         run: |
+          source venv/bin/activate
           python sitetest/manage.py test
-
+          
   # Job для запуска сервера (можно добавить деплой или другие шаги)
   deploy:
     runs-on: ubuntu-latest
@@ -86,4 +93,3 @@ jobs:
           # ssh user@server 'bash deploy.sh'
         env:
           SECRET_KEY: ${{ env.SECRET_KEY }}  # Передаем SECRET_KEY для деплоя
-
