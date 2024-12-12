@@ -7,20 +7,22 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # Job для настройки Python и Vault
   setup:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.11]
     steps:
+      # Шаг 1: Проверка кода из репозитория
       - uses: actions/checkout@v4
 
+      # Шаг 2: Настройка Python
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Шаг 3: Настройка Vault
       - name: Set up Vault
         uses: hashicorp/vault-action@v3
         with:
@@ -29,34 +31,35 @@ jobs:
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
 
+      # Шаг 4: Получение SECRET_KEY из Vault
       - name: Retrieve SECRET_KEY from Vault
         id: secret_key
         run: |
           export SECRET_KEY=$(vault kv get -field=SECRET_KEY secret/django)
-          echo "SECRET_KEY=$SECRET_KEY" >> $GITHUB_ENV  # Сохраняем в переменной окружения
+          echo "SECRET_KEY=$SECRET_KEY" >> $GITHUB_ENV
         env:
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-        continue-on-error: false  # Прерываем пайплайн, если секрет не получен
+        continue-on-error: false
 
-  # Job для установки зависимостей
   install_dependencies:
     runs-on: ubuntu-latest
-    needs: setup  # Этот job зависит от setup
+    needs: setup  # Этот job зависит от job 'setup'
     steps:
+      # Шаг 1: Проверка кода из репозитория
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Set up virtual environment
+      # Шаг 2: Создание виртуального окружения
+      - name: Create and activate virtual environment
         run: |
           python -m venv venv  # Создаем виртуальное окружение
           source venv/bin/activate  # Активируем виртуальное окружение
+          python --version  # Проверяем версию Python
+          which python  # Проверяем путь до активированного Python
+          pip --version  # Проверяем версию pip
+          pip freeze  # Проверяем установленные пакеты
 
-      - name: Verify virtual environment
-        run: |
-          source venv/bin/activate
-          which python  # Проверка использования правильного Python
-          python -m pip freeze  # Проверка установленных пакетов
-
+      # Шаг 3: Кэширование зависимостей
       - name: Cache Python dependencies
         uses: actions/cache@v3
         with:
@@ -65,24 +68,27 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      # Шаг 4: Установка зависимостей
       - name: Install Python dependencies
         run: |
           source venv/bin/activate  # Активируем виртуальное окружение
           python -m pip install --upgrade pip
           pip install -r sitetest/requirements.txt
 
-  # Job для запуска тестов
   run_tests:
     runs-on: ubuntu-latest
-    needs: install_dependencies  # Этот job зависит от install_dependencies
+    needs: install_dependencies  # Этот job зависит от job 'install_dependencies'
     steps:
+      # Шаг 1: Проверка кода из репозитория
       - name: Check out code
         uses: actions/checkout@v4
 
+      # Шаг 2: Запуск тестов Django
       - name: Run Django tests
         run: |
           source venv/bin/activate  # Активируем виртуальное окружение
           python sitetest/manage.py test
+
   deploy:
     runs-on: ubuntu-latest
     needs: run_tests  # Этот job зависит от run_tests
