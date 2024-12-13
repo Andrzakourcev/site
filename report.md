@@ -20,8 +20,32 @@
 
 После установки запускаем Vault командой:
 
-"""vault server -dev"""
+'vault server -dev'
 
+![image](https://github.com/user-attachments/assets/f46c59eb-4078-4034-9df4-1fefc8c481ad)
+
+Получаем данное сообщение, в нем нам нужно VAULT_ADDR и Root Token. Также чтобы в последствии узнавать доступен ли vault, можно проверить что все работает командой 'vault status', если значение sealed - false, то vault активен. 
+
+![image](https://github.com/user-attachments/assets/0c6053e3-811d-4d1c-a078-b3f155f3e878)
+
+Далее с помощью данных команд авторизовываемся в Vault при помощи значений полученных ранее:
+
+'export VAULT_ADDR=http://127.0.0.1:8200
+export VAULT_TOKEN=<ваш_токен>'
+
+А также записываем наш секретный ключ:
+
+'vault kv put secret/django SECRET_KEY="<сам ключ>"'
+
+![image](https://github.com/user-attachments/assets/3ac1d649-1f78-452b-976e-0642a03ebe02)
+
+При этом можно посмотреть метаданные и само значение командой:
+
+'vault kv get <ваше название секрета>'
+
+![image](https://github.com/user-attachments/assets/8a6587bb-8c38-4908-9398-6c6887c2d51d)
+
+Также стоит сказать, что в рамках учебной задачи запускаемся локально, поэтому адрес 127.0.0.1:8200
 
 
 
