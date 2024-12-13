@@ -30,8 +30,9 @@
 
 Далее с помощью данных команд авторизовываемся в Vault при помощи значений полученных ранее:
 
-`export VAULT_ADDR=http://127.0.0.1:8200
-export VAULT_TOKEN=<ваш_токен>'`
+`export VAULT_ADDR=http://127.0.0.1:8200`
+
+`export VAULT_TOKEN=<ваш_токен>'`
 
 А также записываем наш секретный ключ:
 
@@ -46,6 +47,46 @@ export VAULT_TOKEN=<ваш_токен>'`
 ![image](https://github.com/user-attachments/assets/8a6587bb-8c38-4908-9398-6c6887c2d51d)
 
 Также стоит сказать, что в рамках учебной задачи запускаемся локально, поэтому адрес 127.0.0.1:8200
+
+# 2. Approle
+
+Для авторизации в Vault я использовал Approle - метод авторизации Approle позволяет компьютерам или приложениям проходить аутентификацию с помощью ролей, определенных Vault. Этот метод аутентификации ориентирован на автоматизированные рабочие процессы (машины и сервисы) и менее полезен для людей-операторов.
+
+Включаем данный метод:
+
+`vault auth enable approle `
+
+После создаем роль с информацией о политике, времени жизни токена и ключа (время взял из головы):
+
+`
+vault write auth/approle/role/my-role \
+    policies="default" \
+    secret_id_ttl="24h" \
+    token_ttl="100h" \
+    token_max_ttl="40h"
+`
+
+После получаем role_id:
+
+`
+vault read auth/approle/role/my-role/role-id
+`
+
+А также создаем новый secret_id:
+
+`
+vault write -f auth/approle/role/my-role/secret-id
+`
+
+![image](https://github.com/user-attachments/assets/cb0507ec-5324-4cb7-bc2a-d7a55c84c9f9)
+
+Дальше нам следует записать role_id и secret_id в секреты репозитория, чтобы потом их брать уже в пайплайне.
+
+![image](https://github.com/user-attachments/assets/1b8b4844-5c5d-4449-9a1e-1f959741b015)
+
+
+
+
 
 
 
